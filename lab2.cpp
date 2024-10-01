@@ -1,180 +1,196 @@
 #include <iostream>
-#include <vector>
-#include <cstdlib>
-#include <ctime>
-
+#include <cstdlib> // Для rand() и srand()
+#include <ctime>   // Для time()
 using namespace std;
 
-vector<vector<int>> createMatrix(int N)
+class Matrix
 {
-    vector<vector<int>> matrix(N, vector<int>(N));
-    srand(time(0));
-    for (int i = 0; i < N; i++)
+public:
+    // Выбор метода для каждого варианта
+    void toSpiralOrDiagonal(int **data, int size, int *D, char method)
     {
-        for (int j = 0; j < N; j++)
+        switch (method)
         {
-            matrix[i][j] = rand() % 100;
+        case 'a':
+            toRightDiagonals(data, size, D);
+            break;
+        case 'b':
+            toLeftDiagonals(data, size, D);
+            break;
+        case 'c':
+            toSpiralCenter(data, size, D);
+            break;
+        case 'd':
+            toSpiralTopLeft(data, size, D);
+            break;
+        default:
+            cout << "Invalid method" << endl;
         }
     }
-    return matrix;
-}
 
-void printMatrix(const vector<vector<int>> &matrix)
-{
-    for (const auto &row : matrix)
+    // Вывод элементов массива D
+    void printArray(int *D, int size, const string &message)
     {
-        for (int elem : row)
+        cout << message;
+        for (int i = 0; i < size; i++)
         {
-            cout << elem << "\t";
+            cout << D[i] << " ";
         }
         cout << endl;
     }
-}
 
-vector<int> rightDiagonals(const vector<vector<int>> &matrix, int N)
-{
-    vector<int> D;
-    for (int k = 0; k < 2 * N - 1; k++)
+private:
+    // a) Заполнение по правым диагоналям, начиная с правого верхнего элемента
+    void toRightDiagonals(int **data, int size, int *D)
     {
-        for (int i = 0; i < N; i++)
+        int index = 0;
+        for (int diag = 0; diag < 2 * size - 1; diag++)
         {
-            int j = N - 1 - k + i;
-            if (j >= 0 && j < N)
+            for (int x = 0; x < size; x++)
             {
-                D.push_back(matrix[i][j]);
+                int y = diag - x;
+                if (y >= 0 && y < size)
+                {
+                    D[index++] = data[x][y];
+                }
             }
         }
     }
-    return D;
-}
 
-vector<int> leftDiagonals(const vector<vector<int>> &matrix, int N)
-{
-    vector<int> D;
-    for (int k = 0; k < 2 * N - 1; k++)
+    // b) Заполнение по левым диагоналям, начиная с левого верхнего элемента
+    void toLeftDiagonals(int **data, int size, int *D)
     {
-        for (int i = 0; i < N; i++)
+        int index = 0;
+        for (int diag = 0; diag < 2 * size - 1; diag++)
         {
-            int j = k - i;
-            if (j >= 0 && j < N)
+            for (int x = 0; x < size; x++)
             {
-                D.push_back(matrix[i][j]);
+                int y = diag - (size - 1 - x);
+                if (y >= 0 && y < size)
+                {
+                    D[index++] = data[x][y];
+                }
             }
         }
     }
-    return D;
-}
 
-vector<int> spiralFromCenter(const vector<vector<int>> &matrix, int N)
-{
-    vector<int> D;
-
-    int x = N / 2, y = N / 2;  // Центр матрицы
-    D.push_back(matrix[x][y]); // Добавляем центральный элемент
-
-    int step = 1; // Длина шага для движения (увеличивается после двух направлений)
-    while (step < N)
+    // c) Заполнение по спирали, начиная с центрального элемента
+    void toSpiralCenter(int **data, int size, int *D)
     {
-        for (int i = 0; i < step && x + 1 < N; i++)
+        int x = (size - 1) / 2;
+        int y = (size - 1) / 2;
+        int index = 0;
+        D[index++] = data[x][y];
+
+        int directions[4][2] = {
+            {0, 1},  // вправо
+            {1, 0},  // вниз
+            {0, -1}, // влево
+            {-1, 0}  // вверх
+        };
+
+        for (int layer = 1; layer < size; layer += 2)
         {
-            x++;
-            D.push_back(matrix[y][x]);
-        }
+            for (int dir = 0; dir < 4; dir++)
+            {
+                for (int step = 0; step < (dir < 2 ? layer : layer + 1); step++)
+                {
+                    x += directions[dir][0];
+                    y += directions[dir][1];
 
-        for (int i = 0; i < step && y + 1 < N; i++)
-        {
-            y++;
-            D.push_back(matrix[y][x]);
-        }
-
-        step++;
-
-        for (int i = 0; i < step && x - 1 >= 0; i++)
-        {
-            x--;
-            D.push_back(matrix[y][x]);
-        }
-
-        for (int i = 0; i < step && y - 1 >= 0; i++)
-        {
-            y--;
-            D.push_back(matrix[y][x]);
-        }
-
-        step++;
-    }
-
-    if (N % 2 == 0)
-    {
-        for (int i = 0; i < step - 1 && x + 1 < N; i++)
-        {
-            x++;
-            D.push_back(matrix[y][x]);
+                    if (x >= 0 && x < size && y >= 0 && y < size)
+                    {
+                        D[index++] = data[x][y];
+                    }
+                }
+            }
         }
     }
 
-    return D;
-}
-
-vector<int> spiralFromTopLeft(const vector<vector<int>> &matrix, int N)
-{
-    vector<int> D;
-    int top = 0, bottom = N - 1, left = 0, right = N - 1;
-
-    while (top <= bottom && left <= right)
+    // d) Заполнение по спирали, начиная с левого верхнего элемента
+    void toSpiralTopLeft(int **data, int size, int *D)
     {
-        for (int i = left; i <= right; i++)
-            D.push_back(matrix[top][i]);
-        top++;
+        int x = 0, y = 0;
+        int index = 0;
+        D[index++] = data[x][y];
 
-        for (int i = top; i <= bottom; i++)
-            D.push_back(matrix[i][right]);
-        right--;
+        int directions[4][2] = {
+            {0, 1},  // вправо
+            {1, 0},  // вниз
+            {0, -1}, // влево
+            {-1, 0}  // вверх
+        };
 
-        if (top <= bottom)
+        int layer = 0;
+        while (index < size * size)
         {
-            for (int i = right; i >= left; i--)
-                D.push_back(matrix[bottom][i]);
-            bottom--;
-        }
+            for (int dir = 0; dir < 4; dir++)
+            {
+                for (int step = 0; step < (dir % 2 == 0 ? size - layer : size - layer - 1); step++)
+                {
+                    x += directions[dir][0];
+                    y += directions[dir][1];
 
-        if (left <= right)
-        {
-            for (int i = bottom; i >= top; i--)
-                D.push_back(matrix[i][left]);
-            left++;
+                    if (x >= 0 && x < size && y >= 0 && y < size)
+                    {
+                        D[index++] = data[x][y];
+                    }
+                }
+            }
+            layer++;
         }
     }
-    return D;
-}
+};
 
 int main()
 {
-    int N;
+    srand(time(0)); // Инициализация генератора случайных чисел
+
+    int size;
     cout << "Введите размер матрицы N: ";
-    cin >> N;
+    cin >> size;
 
-    vector<vector<int>> matrix = createMatrix(N);
+    // Создание динамической двумерной матрицы размером N×N
+    int **matrix = new int *[size];
+    for (int i = 0; i < size; i++)
+    {
+        matrix[i] = new int[size];
+        for (int j = 0; j < size; j++)
+        {
+            matrix[i][j] = rand() % 100;  // Заполняем случайными числами
+            cout << matrix[i][j] << "\t"; // Выводим матрицу
+        }
+        cout << endl;
+    }
 
-    cout << "Исходная матрица:" << endl;
-    printMatrix(matrix);
-    vector<int> D = rightDiagonals(matrix, N);
-    cout << "\nЭлементы по правым диагоналям: ";
-    for (int elem : D)
-        cout << elem << " ";
+    // Создаем одномерный массив D размером N * N
+    int *D = new int[size * size];
 
-    D = leftDiagonals(matrix, N);
-    cout << "\nЭлементы по левым диагоналям: ";
-    for (int elem : D)
-        cout << elem << " ";
-    D = spiralFromCenter(matrix, N);
-    cout << "\nЭлементы по спирали (с центра): ";
-    for (int elem : D)
-        cout << elem << " ";
-    D = spiralFromTopLeft(matrix, N);
-    cout << "\nЭлементы по спирали (с левого верхнего угла): ";
-    for (int elem : D)
-        cout << elem << " ";
-    cout << "\n";
+    Matrix mat;
+
+    // a) Элементы по правым диагоналям
+    mat.toSpiralOrDiagonal(matrix, size, D, 'a');
+    mat.printArray(D, size * size, "Элементы по правым диагоналям: ");
+
+    // b) Элементы по левым диагоналям
+    mat.toSpiralOrDiagonal(matrix, size, D, 'b');
+    mat.printArray(D, size * size, "Элементы по левым диагоналям: ");
+
+    // c) Элементы по спирали (с центра)
+    mat.toSpiralOrDiagonal(matrix, size, D, 'c');
+    mat.printArray(D, size * size, "Элементы по спирали (с центра): ");
+
+    // d) Элементы по спирали (с левого верхнего угла)
+    mat.toSpiralOrDiagonal(matrix, size, D, 'd');
+    mat.printArray(D, size * size, "Элементы по спирали (с левого верхнего угла): ");
+
+    // Освобождаем память
+    for (int i = 0; i < size; i++)
+    {
+        delete[] matrix[i];
+    }
+    delete[] matrix;
+    delete[] D;
+
     return 0;
 }
