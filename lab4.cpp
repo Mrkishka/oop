@@ -7,207 +7,236 @@ using namespace std;
 class Figure
 {
 protected:
-    double x, y; // Координаты фигуры
+    int x, y; // Координаты центра фигуры
 public:
-    Figure()
-    { // Конструктор по умолчанию
-        x = rand() % 100;
-        y = rand() % 100;
-    }
+    // Конструктор по умолчанию
+    Figure() : x(rand() % 101), y(rand() % 101) {}
 
-    Figure(double x, double y)
-    { // Конструктор с параметрами
-        this->x = x;
-        this->y = y;
-    }
+    // Конструктор с параметрами
+    Figure(int x, int y) : x(x), y(y) {}
 
-    void move(double dx, double dy)
-    { // Метод перемещения
-        x += dx;
-        y += dy;
-    }
-
-    virtual void input()
-    { // Ввод данных
+    // Ввод координат
+    void input()
+    {
         cout << "Введите координаты (x, y): ";
         cin >> x >> y;
     }
 
-    virtual void display() const
-    { // Вывод данных
-        cout << "Координаты: (" << x << ", " << y << ")\n";
+    // Вывод координат
+    void display() const
+    {
+        cout << "Координаты: (" << x << ", " << y << ")" << endl;
     }
 
-    virtual ~Figure() {} // Виртуальный деструктор
+    // Деструктор
+    virtual ~Figure() {}
 };
 
 class Line : public Figure
 {
-private:
-    double x2, y2; // Координаты второго конца линии
-    double length; // Длина линии
+protected:
+    int x2, y2;
+    double length;
+
 public:
-    Line() : Figure()
-    { // Конструктор по умолчанию
-        x2 = rand() % 100;
-        y2 = rand() % 100;
-        length = calculateLength();
-    }
-
-    Line(double x1, double y1, double x2, double y2) : Figure(x1, y1), x2(x2), y2(y2)
+    // Конструктор по умолчанию
+    Line() : Figure(), x2(rand() % 101), y2(rand() % 101)
     {
-        length = calculateLength();
+        computeLength();
     }
 
-    double calculateLength()
+    // Конструктор с параметрами
+    Line(int x1, int y1, int x2, int y2) : Figure(x1, y1), x2(x2), y2(y2)
     {
-        return sqrt((x2 - x) * (x2 - x) + (y2 - y) * (y2 - y));
+        computeLength();
     }
 
-    void input() override
+    // Метод для вычисления длины линии
+    void computeLength()
+    {
+        length = sqrt(pow(x2 - x, 2) + pow(y2 - y, 2));
+    }
+
+    // Вывод длины линии
+    void displayLength() const
+    {
+        cout << "Длина линии: " << length << endl;
+    }
+
+    // Ввод данных
+    void input()
     {
         Figure::input();
-        cout << "Введите координаты второго конца линии (x2, y2): ";
+        cout << "Введите координаты конца линии (x2, y2): ";
         cin >> x2 >> y2;
-        length = calculateLength();
+        computeLength();
     }
 
-    void display() const override
+    // Вывод координат
+    void display() const
     {
         Figure::display();
-        cout << "Координаты второго конца: (" << x2 << ", " << y2 << ")\n";
-        cout << "Длина линии: " << length << endl;
+        cout << "Конец линии: (" << x2 << ", " << y2 << ")" << endl;
     }
 };
 
 class Circle : public Figure
 {
 protected:
-    double radius;
+    int radius;
 
 public:
-    Circle() : Figure()
-    {
-        radius = rand() % 100;
-    }
+    // Конструктор по умолчанию
+    Circle() : Figure(), radius(rand() % 50 + 1) {}
 
-    Circle(double x, double y, double radius) : Figure(x, y), radius(radius) {}
+    // Конструктор с параметрами
+    Circle(int x, int y, int r) : Figure(x, y), radius(r) {}
 
-    void input() override
+    // Ввод данных
+    void input()
     {
         Figure::input();
         cout << "Введите радиус: ";
         cin >> radius;
     }
 
-    void display() const override
+    // Вывод данных
+    void display() const
     {
         Figure::display();
         cout << "Радиус: " << radius << endl;
     }
 };
 
-class Ellipse : public Circle
+class Square : public Line
 {
-protected:
-    double minorRadius; // Малый радиус эллипса
 public:
-    Ellipse() : Circle()
+    // Конструктор по умолчанию
+    Square() : Line() {}
+
+    // Конструктор с параметрами
+    Square(int x1, int y1, int side) : Line(x1, y1, x1 + side, y1) {}
+
+    // Вычисление периметра
+    int perimeter() const
     {
-        minorRadius = rand() % 50;
+        return 4 * (x2 - x);
     }
 
-    Ellipse(double x, double y, double majorRadius, double minorRadius) : Circle(x, y, majorRadius), minorRadius(minorRadius) {}
-
-    void input() override
+    // Вычисление площади
+    int area() const
     {
-        Circle::input();
-        cout << "Введите малый радиус: ";
-        cin >> minorRadius;
+        return pow(x2 - x, 2);
     }
 
-    void display() const override
+    // Вывод периметра и площади
+    void displayMetrics() const
     {
-        Circle::display();
-        cout << "Малый радиус: " << minorRadius << endl;
-    }
-};
-
-class Square : public Figure
-{
-protected:
-    double side;
-
-public:
-    Square() : Figure()
-    {
-        side = rand() % 50;
+        cout << "Периметр квадрата: " << perimeter() << endl;
+        cout << "Площадь квадрата: " << area() << endl;
     }
 
-    Square(double x, double y, double side) : Figure(x, y), side(side) {}
-
-    void input() override
+    // Ввод данных с клавиатуры
+    void manualInput()
     {
-        Figure::input();
-        cout << "Введите длину стороны: ";
-        cin >> side;
+        Line::input();
     }
 
-    double perimeter() const
+    // Ввод случайных данных
+    void randomInput()
     {
-        return 4 * side;
+        x = rand() % 101;
+        y = rand() % 101;
+        int side = rand() % 50 + 1;
+        x2 = x + side;
+        y2 = y;
+        computeLength();
     }
 
-    double area() const
+    // Метод для выбора способа ввода данных
+    void inputChoice()
     {
-        return side * side;
-    }
-
-    void display() const override
-    {
-        Figure::display();
-        cout << "Сторона квадрата: " << side << endl;
-        cout << "Периметр: " << perimeter() << endl;
-        cout << "Площадь: " << area() << endl;
+        int choice;
+        cout << "Выберите способ ввода данных для квадрата (1 - вручную, 2 - случайно): ";
+        cin >> choice;
+        if (choice == 1)
+        {
+            manualInput();
+        }
+        else
+        {
+            randomInput();
+        }
     }
 };
 
 class Rectangle : public Square
 {
-protected:
-    double width;
+private:
+    int height;
 
 public:
-    Rectangle() : Square()
+    // Конструктор по умолчанию
+    Rectangle() : Square(), height(rand() % 50 + 1) {}
+
+    // Конструктор с параметрами
+    Rectangle(int x1, int y1, int w, int h) : Square(x1, y1, w), height(h) {}
+
+    // Вычисление периметра
+    int perimeter() const
     {
-        width = rand() % 50;
+        return 2 * (x2 - x + height);
     }
 
-    Rectangle(double x, double y, double length, double width) : Square(x, y, length), width(width) {}
+    // Вычисление площади
+    int area() const
+    {
+        return (x2 - x) * height;
+    }
 
-    void input() override
+    // Вывод периметра и площади
+    void displayMetrics() const
+    {
+        cout << "Периметр прямоугольника: " << perimeter() << endl;
+        cout << "Площадь прямоугольника: " << area() << endl;
+    }
+
+    // Ввод данных вручную
+    void manualInput()
     {
         Square::input();
-        cout << "Введите ширину: ";
-        cin >> width;
+        cout << "Введите высоту: ";
+        cin >> height;
     }
 
-    double perimeter() const
+    // Ввод случайных данных
+    void randomInput()
     {
-        return 2 * (side + width);
+        Square::randomInput();
+        height = rand() % 50 + 1;
     }
 
-    double area() const
+    // Метод для выбора способа ввода данных
+    void inputChoice()
     {
-        return side * width;
+        int choice;
+        cout << "Выберите способ ввода данных для прямоугольника (1 - вручную, 2 - случайно): ";
+        cin >> choice;
+        if (choice == 1)
+        {
+            manualInput();
+        }
+        else
+        {
+            randomInput();
+        }
     }
 
-    void display() const override
+    // Вывод данных
+    void display() const
     {
-        Figure::display();
-        cout << "Длина: " << side << ", Ширина: " << width << endl;
-        cout << "Периметр: " << perimeter() << endl;
-        cout << "Площадь: " << area() << endl;
+        Square::display();
+        cout << "Высота: " << height << endl;
     }
 };
 
@@ -215,21 +244,49 @@ int main()
 {
     srand(time(0));
 
+    // Создание объектов классов
     Line line1;
+    Circle circle1;
+    Square square1;
+    Rectangle rectangle1;
+
+    // Ввод данных с выбором
+    square1.inputChoice();
+    rectangle1.inputChoice();
+
+    // Вывод данных для линии и круга
+    cout << "\nЛиния:\n";
     line1.display();
+    line1.displayLength();
 
-    Square square1(0, 0, 5);
+    cout << "\nКруг:\n";
+    circle1.display();
+
+    // Вывод данных для квадрата и прямоугольника
+    cout << "\nКвадрат:\n";
     square1.display();
+    square1.displayMetrics();
 
-    Rectangle rectArray[3] = {
-        Rectangle(1, 1, 5, 3),
-        Rectangle(2, 2, 6, 4),
-        Rectangle(3, 3, 7, 5)};
+    cout << "\nПрямоугольник:\n";
+    rectangle1.display();
+    rectangle1.displayMetrics();
 
-    for (int i = 0; i < 3; i++)
+    // Динамический массив объектов класса Прямоугольник
+    Rectangle *rectangles = new Rectangle[3]{
+        Rectangle(0, 0, 4, 6),
+        Rectangle(1, 1, 5, 7),
+        Rectangle(2, 2, 8, 10)};
+
+    // Вывод периметров и площадей всех прямоугольников
+    cout << "\nДинамический массив прямоугольников:\n";
+    for (int i = 0; i < 3; ++i)
     {
-        rectArray[i].display();
+        rectangles[i].display();
+        rectangles[i].displayMetrics();
     }
+
+    // Удаление динамического массива
+    delete[] rectangles;
 
     return 0;
 }
